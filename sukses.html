@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Berhasil - Smart Locker</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif; background: #1a1a2e;
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .card {
+      background: white; border-radius: 16px; padding: 32px;
+      width: 100%; max-width: 420px; text-align: center;
+    }
+    #ikon-sukses { font-size: 56px; margin-bottom: 16px; }
+    h2 { color: #1a1a2e; font-size: 22px; margin-bottom: 8px; }
+    .keterangan { color: #888; font-size: 13px; margin-bottom: 20px; }
+    .info-box {
+      background: #f9f9f9; border: 1px solid #eee;
+      border-radius: 10px; padding: 16px; text-align: left;
+      margin-bottom: 20px; font-size: 14px; line-height: 2;
+    }
+    .info-box p strong { color: #555; }
+    .tombol-hijau {
+      width: 100%; padding: 13px; border: none; border-radius: 8px;
+      background: #4caf50; color: white; font-size: 15px;
+      font-weight: bold; cursor: pointer; transition: background 0.2s;
+    }
+    .tombol-hijau:hover { background: #388e3c; }
+    .watermark { color: #555; font-size: 12px; text-align: center; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div id="ikon-sukses">✅</div>
+    <h2>Pendaftaran Berhasil!</h2>
+    <p class="keterangan">Data Anda telah tersimpan.</p>
+
+    <div class="info-box">
+      <p><strong>Nama :</strong> <span id="tampil-nama">-</span></p>
+      <p><strong>Loker :</strong> <span id="tampil-loker">-</span></p>
+      <p><strong>Tanggal :</strong> <span id="tampil-tanggal">-</span></p>
+      <p><strong>Nomor HP :</strong> <span id="tampil-hp">-</span></p>
+    </div>
+
+    <p class="keterangan">
+      Silakan masukkan barang Anda ke dalam loker.<br>
+      Untuk mengambil barang, gunakan nomor HP yang didaftarkan.
+    </p>
+
+    <button onclick="kembaliAwal()" class="tombol-hijau">
+      Kembali ke Halaman Utama
+    </button>
+  </div>
+  <p class="watermark">@Smart Loker_Tugas Akhir Osa</p>
+
+  <script>
+    window.onload = function () {
+      var raw = localStorage.getItem('data_sukses');
+      if (!raw) { window.location.href = 'index.html'; return; }
+      var d = JSON.parse(raw);
+      document.getElementById('tampil-nama').textContent    = d.nama        || '-';
+      document.getElementById('tampil-loker').textContent   = d.nama_loker  || d.nomor_loker || '-';
+      document.getElementById('tampil-tanggal').textContent = d.tanggal_pakai || '-';
+      document.getElementById('tampil-hp').textContent      = d.no_hp       || '-';
+      localStorage.removeItem('data_sukses');
+    };
+
+    function kembaliAwal() {
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>

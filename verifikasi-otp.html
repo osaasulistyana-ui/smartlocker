@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifikasi OTP - Smart Locker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif; background: #1a1a2e;
+            min-height: 100vh; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 20px;
+        }
+        .card {
+            background: white; border-radius: 16px; padding: 32px;
+            width: 100%; max-width: 420px; text-align: center;
+        }
+        h2 { color: #1a1a2e; margin-bottom: 6px; font-size: 22px; }
+        .sub { color: #888; font-size: 13px; margin-bottom: 24px; }
+        .no-hp-info {
+            background: #f0f7ff; border: 1px solid #b3d4f7;
+            border-radius: 10px; padding: 10px 16px;
+            margin-bottom: 20px; font-size: 14px; color: #1a5fa8;
+        }
+        #otpBox {
+            background: #f0fff0; border: 2px solid #4caf50;
+            border-radius: 10px; padding: 12px; margin-bottom: 16px;
+            font-size: 20px; font-weight: bold; color: #2e7d32; display: none;
+        }
+        input {
+            width: 100%; padding: 14px; border: 2px solid #ddd;
+            border-radius: 8px; font-size: 22px; text-align: center;
+            letter-spacing: 8px; margin-bottom: 16px; display: none;
+        }
+        input:focus { outline: none; border-color: #1a1a2e; }
+        .btn {
+            width: 100%; padding: 13px; border: none; border-radius: 8px;
+            font-size: 15px; cursor: pointer; font-weight: bold; margin-bottom: 10px;
+        }
+        .btn-verif  { background: #1a1a2e; color: white; display: none; }
+        .btn-resend { background: #f0f0f0; color: #555; display: none; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        #msg { font-size: 14px; margin-top: 8px; min-height: 20px; }
+        .msg-error   { color: red; }
+        .msg-success { color: green; }
+        .timer { color: #888; font-size: 13px; margin-bottom: 10px; }
+        #loadingText { color: #888; font-size: 14px; margin-bottom: 10px; }
+        .watermark { color: #aaa; font-size: 12px; text-align: center; margin-top: 20px; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>🔐 Verifikasi OTP</h2>
+    <p class="sub">Masukkan kode OTP yang tampil di bawah ini</p>
+    <div class="no-hp-info" id="infoHp">📱 Nomor: —</div>
+    <div id="loadingText">Membuat kode OTP...</div>
+    <div id="otpBox"></div>
+    <input type="text" id="otpInput" maxlength="6" placeholder="------" inputmode="numeric">
+    <div class="timer" id="timer"></div>
+    <button class="btn btn-verif"  id="btnVerif"  onclick="verifikasiOTP()">✔ Verifikasi</button>
+    <button class="btn btn-resend" id="btnUlangi" onclick="buatOTP()">🔄 Buat Ulang OTP</button>
+    <div id="msg"></div>
+</div>
+<div class="watermark">@Smart Locker_Tugas Akhir Osa</div>
+
+<script>
+    const FB_URL    = 'https://osa-smartlocker01-default-rtdb.firebaseio.com';
+    const FB_SECRET = 'lROAwkAvywX74fVBkcixnwKKqoeNYgeuraPcJPst';
+    const OTP_DURASI = 300; // 5 menit
+
+    var countdown;
+    var otpTersimpan = null;
+    var otpExpiredAt = null;
+    var dataTitip    = null;
+
+    window.onload = function () {
+        var dt = localStorage.getItem('data_titip');
+        if (!dt) {
+            alert('Data tidak ditemukan. Silakan isi form terlebih dahulu.');
+            window.location.href = 'pilih-loker.html';
+            return;
+        }
+        dataTitip = JSON.parse(dt);
+        document.getElementById('infoHp').textContent = '📱 Nomor: ' + dataTitip.no_hp;
+        buatOTP();
+    };
+
+    function genOtp() {
+        return String(Math.floor(100000 + Math.random() * 900000));
+    }
+
+    async function buatOTP() {
+        document.getElementById('loadingText').textContent = 'Membuat kode OTP...';
+        document.getElementById('otpBox').style.display    = 'none';
+        document.getElementById('otpInput').style.display  = 'none';
+        document.getElementById('btnVerif').style.display  = 'none';
+        document.getElementById('btnUlangi').style.display = 'none';
+        document.getElementById('timer').textContent       = '';
+
+        otpTersimpan = genOtp();
+        otpExpiredAt = Math.floor(Date.now() / 1000) + OTP_DURASI;
+
+        // Simpan OTP ke Firebase di node loker
+        try {
+            await fbPut(`lockers/${dataTitip.nomor_loker}/otp`, otpTersimpan);
+            await fbPut(`lockers/${dataTitip.nomor_loker}/otp_expiry`,
+                new Date(otpExpiredAt * 1000).toLocaleString('id-ID'));
+        } catch(e) {
+            console.warn('Gagal simpan OTP ke Firebase:', e);
+        }
+
+        document.getElementById('loadingText').textContent = '';
+        var box = document.getElementById('otpBox');
+        box.textContent   = 'Kode OTP kamu: ' + otpTersimpan;
+        box.style.display = 'block';
+        document.getElementById('otpInput').style.display = 'block';
+        document.getElementById('btnVerif').style.display = 'block';
+        mulaiTimer(OTP_DURASI);
+    }
+
+    function mulaiTimer(detik) {
+        clearInterval(countdown);
+        document.getElementById('btnUlangi').style.display = 'none';
+        var sisa = detik;
+        var el   = document.getElementById('timer');
+        countdown = setInterval(function () {
+            var m = String(Math.floor(sisa / 60)).padStart(2, '0');
+            var s = String(sisa % 60).padStart(2, '0');
+            el.textContent = 'OTP berlaku: ' + m + ':' + s;
+            sisa--;
+            if (sisa < 0) {
+                clearInterval(countdown);
+                el.textContent = 'Kode OTP kadaluarsa!';
+                otpTersimpan   = null;
+                document.getElementById('btnUlangi').style.display = 'block';
+            }
+        }, 1000);
+    }
+
+    function verifikasiOTP() {
+        var otp = document.getElementById('otpInput').value.trim();
+        if (!otp) { setMsg('Masukkan kode OTP!', 'error'); return; }
+
+        if (!otpTersimpan) {
+            setMsg('OTP tidak ditemukan. Klik Buat Ulang OTP.', 'error'); return;
+        }
+        if (Math.floor(Date.now() / 1000) > otpExpiredAt) {
+            setMsg('OTP kadaluarsa. Silakan ulangi.', 'error');
+            document.getElementById('btnUlangi').style.display = 'block'; return;
+        }
+        if (otp !== otpTersimpan) {
+            setMsg('Kode OTP salah! Coba lagi.', 'error'); return;
+        }
+
+        // OTP benar → simpan data ke Firebase
+        var btn = document.getElementById('btnVerif');
+        btn.disabled = true; btn.textContent = 'Menyimpan...';
+        simpanData();
+    }
+
+    async function simpanData() {
+        setMsg('OTP valid! Menyimpan data...', 'success');
+        try {
+            // Update loker di Firebase
+            const lokerData = {
+                status:          'occupied',
+                pengguna:        dataTitip.nama,
+                no_hp:           dataTitip.no_hp,
+                alamat:          dataTitip.alamat,
+                tanggal_pakai:   dataTitip.tanggal_pakai,
+                terakhir_dibuka: new Date().toLocaleString('id-ID'),
+                otp:             '',
+                otp_expiry:      ''
+            };
+            await fbPatch(`lockers/${dataTitip.nomor_loker}`, lokerData);
+
+            // Catat log
+            await fbPush('logs', {
+                locker_id: dataTitip.nomor_loker,
+                aksi:      'titip_barang',
+                pengguna:  dataTitip.nama,
+                metode:    'OTP',
+                no_hp:     dataTitip.no_hp,
+                waktu:     new Date().toISOString().replace('T',' ').slice(0,19)
+            });
+
+            clearInterval(countdown);
+            localStorage.removeItem('loker_dipilih_id');
+            localStorage.removeItem('loker_dipilih_nama');
+            localStorage.removeItem('data_titip');
+
+            // Simpan data untuk halaman sukses
+            localStorage.setItem('data_sukses', JSON.stringify(dataTitip));
+            window.location.href = 'sukses.html';
+
+        } catch(e) {
+            setMsg('Gagal menyimpan data. Coba lagi.', 'error');
+            var btn = document.getElementById('btnVerif');
+            btn.disabled = false; btn.textContent = '✔ Verifikasi';
+        }
+    }
+
+    // ── Firebase helpers ──────────────────────────────
+    async function fbPut(path, val) {
+        await fetch(`${FB_URL}/${path}.json?auth=${FB_SECRET}`, {
+            method: 'PUT', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(val)
+        });
+    }
+    async function fbPatch(path, val) {
+        await fetch(`${FB_URL}/${path}.json?auth=${FB_SECRET}`, {
+            method: 'PATCH', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(val)
+        });
+    }
+    async function fbPush(path, val) {
+        await fetch(`${FB_URL}/${path}.json?auth=${FB_SECRET}`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify(val)
+        });
+    }
+
+    function setMsg(text, type) {
+        var el = document.getElementById('msg');
+        el.textContent = text;
+        el.className   = type === 'error' ? 'msg-error' : 'msg-success';
+    }
+</script>
+</body>
+</html>

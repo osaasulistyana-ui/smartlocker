@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Locker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+        .container { text-align: center; max-width: 480px; width: 100%; }
+        .icon { font-size: 64px; margin-bottom: 16px; }
+        h1 { color: white; font-size: 36px; letter-spacing: 2px; margin-bottom: 12px; }
+        .selamat { color: #aaa; font-size: 16px; margin-bottom: 24px; }
+        .deskripsi {
+            color: #ccc; font-size: 14px; line-height: 1.7;
+            margin-bottom: 40px; background: rgba(255,255,255,0.05);
+            border-radius: 12px; padding: 16px 20px;
+        }
+        .btn-masuk {
+            display: inline-block; background: white; color: #1a1a2e;
+            padding: 14px 48px; border-radius: 30px; font-size: 18px;
+            font-weight: bold; text-decoration: none; cursor: pointer;
+            border: none; transition: transform 0.2s, background 0.2s; margin-bottom: 12px;
+        }
+        .btn-masuk:hover { background: #e0e0e0; transform: scale(1.03); }
+        .keterangan-masuk { color: #888; font-size: 12px; margin-bottom: 32px; }
+        .btn-ambil {
+            display: inline-block; background: transparent; color: #e74c3c;
+            border: 1px solid #e74c3c; padding: 10px 32px; border-radius: 30px;
+            font-size: 14px; text-decoration: none; cursor: pointer;
+            transition: background 0.2s; margin-bottom: 8px;
+        }
+        .btn-ambil:hover { background: rgba(231,76,60,0.1); }
+        .keterangan-ambil { color: #666; font-size: 12px; margin-bottom: 40px; }
+        .watermark { position: fixed; bottom: 16px; color: #333; font-size: 12px; }
+        .admin-link {
+            position: fixed; top: 16px; right: 20px;
+            color: #555; font-size: 12px; text-decoration: none;
+        }
+        .admin-link:hover { color: #aaa; }
+    </style>
+</head>
+<body>
+    <a href="admin.html" class="admin-link">⚙ Admin</a>
+    <div class="container">
+        <div class="icon">🔐</div>
+        <h1>Smart Locker</h1>
+        <p class="selamat">Selamat Datang</p>
+        <div class="deskripsi">
+            Untuk menjaga keamanan barang Anda,<br>
+            titipkan barang Anda pada loker.
+        </div>
+        <a href="pilih-loker.html" class="btn-masuk">Masuk</a>
+        <p class="keterangan-masuk">
+            Masuk untuk memasukkan data diri dan mendapatkan password loker
+        </p>
+        <br>
+        <a href="ambil-barang.html" class="btn-ambil">📤 Ambil Barang</a>
+        <p class="keterangan-ambil">Sudah menitipkan barang? Ambil di sini</p>
+    </div>
+    <div class="watermark">@Smart Locker_Tugas Akhir Osa</div>
+</body>
+</html>
