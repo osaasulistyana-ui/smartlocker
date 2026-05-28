@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifikasi OTP - Smart Locker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+        }
+        h2 { color: #1a1a2e; margin-bottom: 6px; font-size: 22px; }
+        .sub { color: #888; font-size: 13px; margin-bottom: 24px; }
+        .no-hp-info {
+            background: #f0f7ff;
+            border: 1px solid #b3d4f7;
+            border-radius: 10px;
+            padding: 10px 16px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #1a5fa8;
+        }
+        #otpBox {
+            background: #f0fff0;
+            border: 2px solid #4caf50;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #2e7d32;
+            display: none;
+        }
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 22px;
+            text-align: center;
+            letter-spacing: 8px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        input:focus { outline: none; border-color: #1a1a2e; }
+        .btn {
+            width: 100%; padding: 13px; border: none;
+            border-radius: 8px; font-size: 15px;
+            cursor: pointer; font-weight: bold; margin-bottom: 10px;
+        }
+        .btn-verif  { background: #1a1a2e; color: white; display: none; }
+        .btn-resend { background: #f0f0f0; color: #555;  display: none; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        #msg { font-size: 14px; margin-top: 8px; min-height: 20px; }
+        .msg-error   { color: red; }
+        .msg-success { color: green; }
+        .timer { color: #888; font-size: 13px; margin-bottom: 10px; }
+        #loadingText { color: #888; font-size: 14px; margin-bottom: 10px; }
+        .watermark { color: #aaa; font-size: 12px; text-align: center; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>🔐 Verifikasi OTP</h2>
+    <p class="sub">Masukkan kode OTP yang tampil di bawah ini</p>
+    <div class="no-hp-info" id="infoHp">📱 Nomor: —</div>
+    <div id="loadingText">Membuat kode OTP...</div>
+    <div id="otpBox"></div>
+    <input type="text" id="otpInput" maxlength="6" placeholder="------" inputmode="numeric">
+    <div class="timer" id="timer"></div>
+    <button class="btn btn-verif"  id="btnVerif"  onclick="verifikasiOTP()">✔ Verifikasi</button>
+    <button class="btn btn-resend" id="btnUlangi" onclick="ulangiOTP()">🔄 Kirim Ulang OTP</button>
+    <div id="msg"></div>
+</div>
+<div class="watermark">@Smart Locker_Tugas Akhir Osa</div>
+
+<script>
+var BASE = 'https://smartlocker-ta.infinityfree.me/pages';
+var countdown;
+var otpTersimpan = null;
+var otpExpiredAt = null;
+
+window.onload = function () {
+    var dt = localStorage.getItem('data_titip');
+    if (!dt) {
+        alert('Data tidak ditemukan. Silakan isi form terlebih dahulu.');
+        window.location.href = BASE + '/pilih-loker.html';
+        return;
+    }
+    var data = JSON.parse(dt);
+    document.getElementById('infoHp').textContent = '📱 Nomor: ' + data.no_hp;
+    kirimOTP(data.no_hp);
+};
+
+function kirimOTP(no_hp) {
+    document.getElementById('loadingText').textContent = 'Membuat kode OTP...';
+    document.getElementById('otpBox').style.display    = 'none';
+    document.getElementById('otpInput').style.display  = 'none';
+    document.getElementById('btnVerif').style.display  = 'none';
+    document.getElementById('btnUlangi').style.display = 'none';
+
+    var fd = new FormData();
+    fd.append('no_hp', no_hp);
+
+    fetch(BASE + '/kirim-otp-titip.php', {
+        method: 'POST',
+        body: fd
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+        document.getElementById('loadingText').textContent = '';
+        if (d.status === 'success') {
+            otpTersimpan = d.otp;
+            otpExpiredAt = Math.floor(Date.now() / 1000) + d.expired;
+
+            var box = document.getElementById('otpBox');
+            box.textContent   = 'Kode OTP kamu: ' + d.otp;
+            box.style.display = 'block';
+            document.getElementById('otpInput').style.display  = 'block';
+            document.getElementById('btnVerif').style.display  = 'block';
+            mulaiTimer(d.expired);
+        } else {
+            document.getElementById('loadingText').textContent = 'Gagal: ' + d.message;
+            document.getElementById('btnUlangi').style.display = 'block';
+        }
+    })
+    .catch(function (e) {
+        console.log('Error:', e);
+        document.getElementById('loadingText').textContent = 'Gagal terhubung ke server.';
+        document.getElementById('btnUlangi').style.display = 'block';
+    });
+}
+
+function mulaiTimer(detik) {
+    clearInterval(countdown);
+    document.getElementById('btnUlangi').style.display = 'none';
+    var sisa = detik;
+    var el   = document.getElementById('timer');
+    countdown = setInterval(function () {
+        var m = String(Math.floor(sisa / 60)).padStart(2, '0');
+        var s = String(sisa % 60).padStart(2, '0');
+        el.textContent = 'OTP berlaku: ' + m + ':' + s;
+        sisa--;
+        if (sisa < 0) {
+            clearInterval(countdown);
+            el.textContent = 'Kode OTP kadaluarsa!';
+            otpTersimpan   = null;
+            document.getElementById('btnUlangi').style.display = 'block';
+        }
+    }, 1000);
+}
+
+function verifikasiOTP() {
+    var otp = document.getElementById('otpInput').value.trim();
+    if (!otp) { setMsg('Masukkan kode OTP!', 'error'); return; }
+
+    if (!otpTersimpan) {
+        setMsg('OTP tidak ditemukan. Klik Kirim Ulang OTP.', 'error');
+        return;
+    }
+    if (Math.floor(Date.now() / 1000) > otpExpiredAt) {
+        setMsg('OTP kadaluarsa. Silakan ulangi.', 'error');
+        document.getElementById('btnUlangi').style.display = 'block';
+        return;
+    }
+
+    var dt  = JSON.parse(localStorage.getItem('data_titip'));
+    var fd  = new FormData();
+    fd.append('otp',         otp);
+    fd.append('otp_benar',   otpTersimpan);
+    fd.append('otp_expired', otpExpiredAt);
+    fd.append('no_hp',       dt.no_hp);
+
+    var btn = document.getElementById('btnVerif');
+    btn.disabled    = true;
+    btn.textContent = 'Memverifikasi...';
+
+    fetch(BASE + '/verifikasi-otp.php', {
+        method: 'POST',
+        body: fd
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+        if (d.status === 'success') {
+            simpanData(dt);
+        } else if (d.status === 'expired') {
+            setMsg('OTP kadaluarsa. Silakan ulangi.', 'error');
+            document.getElementById('btnUlangi').style.display = 'block';
+            btn.disabled    = false;
+            btn.textContent = '✔ Verifikasi';
+        } else {
+            setMsg(d.message, 'error');
+            btn.disabled    = false;
+            btn.textContent = '✔ Verifikasi';
+        }
+    })
+    .catch(function () {
+        setMsg('Error: Tidak bisa terhubung ke server.', 'error');
+        btn.disabled    = false;
+        btn.textContent = '✔ Verifikasi';
+    });
+}
+
+function simpanData(dt) {
+    setMsg('OTP valid! Menyimpan data...', 'success');
+    var fd = new FormData();
+    fd.append('nama',          dt.nama);
+    fd.append('no_hp',         dt.no_hp);
+    fd.append('tanggal_pakai', dt.tanggal_pakai);
+    fd.append('alamat',        dt.alamat);
+    fd.append('nomor_loker',   dt.nomor_loker);
+
+    fetch(BASE + '/simpan-data.php', {
+        method: 'POST',
+        body: fd
+    })
+    .then(function (r) { return r.json(); })
+    .then(function (h) {
+        clearInterval(countdown);
+        localStorage.removeItem('loker_dipilih');
+        localStorage.removeItem('otp_no_hp');
+        localStorage.removeItem('nama_pengguna');
+        localStorage.removeItem('data_titip');
+        if (h.status === 'success') {
+            setMsg('Berhasil! Mengalihkan ke halaman utama...', 'success');
+        } else {
+            setMsg('Gagal simpan: ' + h.message + '. Mengalihkan...', 'error');
+        }
+        setTimeout(function () {
+            window.location.href = 'https://smartlocker-ta.infinityfree.me';
+        }, 1500);
+    })
+    .catch(function () {
+        setMsg('Mengalihkan ke halaman utama...', 'success');
+        setTimeout(function () {
+            window.location.href = 'https://smartlocker-ta.infinityfree.me';
+        }, 1500);
+    });
+}
+
+function ulangiOTP() {
+    var dt = localStorage.getItem('data_titip');
+    if (!dt) {
+        window.location.href = BASE + '/pilih-loker.html';
+        return;
+    }
+    kirimOTP(JSON.parse(dt).no_hp);
+}
+
+function setMsg(text, type) {
+    var el         = document.getElementById('msg');
+    el.textContent = text;
+    el.className   = type === 'error' ? 'msg-error' : 'msg-success';
+}
+</script>
+</body>
+</html>

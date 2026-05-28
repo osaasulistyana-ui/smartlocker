@@ -1,0 +1,155 @@
+/* Loker Card */
+.loker-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.loker-card {
+  border-radius: 12px;
+  padding: 15px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  transition: transform 0.2s;
+}
+
+.loker-card:hover {
+  transform: scale(1.02);
+}
+
+.loker-hijau {
+  background: linear-gradient(135deg, #28a745, #20c954);
+  color: white;
+}
+
+.loker-merah {
+  background: linear-gradient(135deg, #dc3545, #ff4d5e);
+  color: white;
+}
+
+.loker-header {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.4);
+  padding-bottom: 8px;
+}
+
+.loker-status {
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.loker-info-item {
+  font-size: 12px;
+  margin: 4px 0;
+  background: rgba(0,0,0,0.15);
+  border-radius: 5px;
+  padding: 3px 6px;
+}
+
+.loker-info-kosong {
+  font-size: 12px;
+  margin-top: 8px;
+  opacity: 0.85;
+}
+
+.loker-btn {
+  margin-top: 12px;
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+}
+
+.btn-pilih {
+  background-color: white;
+  color: #28a745;
+}
+
+.btn-disabled {
+  background-color: rgba(255,255,255,0.3);
+  color: white;
+  cursor: not-allowed;
+}
+
+/* Loker dipilih info */
+.loker-dipilih {
+  background-color: #e8f4fd;
+  border: 1px solid #1a73e8;
+  border-radius: 8px;
+  padding: 10px 15px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #1a73e8;
+}
+
+/* Grup tombol */
+.btn-group {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.btn-hijau-kecil {
+  flex: 1;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-hijau-kecil:hover {
+  background-color: #218838;
+}
+
+.btn-kembali-kecil {
+  flex: 1;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-kembali-kecil:hover {
+  background-color: #545b62;
+}
+
+/* OTP Display */
+.otp-display {
+  background: linear-gradient(135deg, #1a73e8, #0d47a1);
+  color: white;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.otp-display p {
+  color: rgba(255,255,255,0.8);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.kode-otp {
+  font-size: 40px;
+  font-weight: bold;
+  letter-spacing: 8px;
+  margin: 10px 0;
+}
+
+#timerInfo {
+  color: #ffe082;
+  font-size: 13px;
+  margin-top: 8px;
+}

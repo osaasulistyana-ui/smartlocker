@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Data Diri - Smart Locker</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+
+  <div class="container">
+    <h1 class="judul">Smart Locker</h1>
+    <p class="sambutan">Isi Data Diri</p>
+    <p class="isi">Lengkapi data diri Anda untuk menitipkan barang.</p>
+
+    <div class="card">
+
+      <!-- Info Loker Dipilih -->
+      <div class="loker-dipilih">
+        🔒 Loker dipilih: <strong id="namaLoker">-</strong>
+      </div>
+
+      <!-- Form -->
+      <div class="form-group">
+        <label for="nama">👤 Nama Lengkap</label>
+        <input type="text" id="nama" placeholder="Masukkan nama lengkap" />
+      </div>
+
+      <div class="form-group">
+        <label for="tanggal">📅 Tanggal Pemakaian</label>
+        <input type="date" id="tanggal" />
+      </div>
+
+      <div class="form-group">
+        <label for="alamat">🏠 Alamat</label>
+        <input type="text" id="alamat" placeholder="Masukkan alamat" />
+      </div>
+
+      <div class="form-group">
+        <label for="nomorHP">📱 Nomor HP</label>
+        <input type="tel" id="nomorHP" placeholder="Contoh: 08123456789" maxlength="15" />
+      </div>
+
+      <!-- Tombol Aksi -->
+      <div class="btn-group">
+        <button class="btn-kembali-kecil" onclick="window.location.href='pilih-loker.html'">
+          ← Kembali
+        </button>
+        <button class="btn-hijau-kecil" onclick="lanjutkan()">
+          Lanjutkan →
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <footer class="watermark">@Smart Loker_Tugas Akhir Osa</footer>
+
+  <script src="data-diri.js"></script>
+</body>
+</html>

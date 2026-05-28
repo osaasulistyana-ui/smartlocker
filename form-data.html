@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Isi Data - Smart Locker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            width: 100%;
+            max-width: 420px;
+        }
+        h2 { color: #1a1a2e; margin-bottom: 6px; font-size: 22px; }
+        .sub { color: #888; font-size: 13px; margin-bottom: 24px; }
+        .loker-info {
+            background: #f0f7ff;
+            border: 1px solid #b3d4f7;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #1a5fa8;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 6px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 16px;
+            resize: none;
+        }
+        input:focus, textarea:focus { outline: none; border-color: #1a1a2e; }
+        .btn-row { display: flex; gap: 12px; margin-top: 8px; }
+        .btn {
+            flex: 1; padding: 12px; border: none;
+            border-radius: 8px; font-size: 15px;
+            cursor: pointer; font-weight: bold;
+        }
+        .btn-batal { background: #f0f0f0; color: #555; }
+        .btn-lanjut { background: #1a1a2e; color: white; }
+        .watermark { color: #aaa; font-size: 12px; text-align: center; margin-top: 20px; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>📝 Isi Data Diri</h2>
+    <p class="sub">Lengkapi data untuk menitipkan barang</p>
+    <div class="loker-info" id="infoLoker">📦 Loker: —</div>
+    <label>Nama Lengkap</label>
+    <input type="text" id="nama" placeholder="Masukkan nama lengkap">
+    <label>Nomor HP</label>
+    <input type="tel" id="noHp" placeholder="Contoh: 08123456789">
+    <label>Tanggal Pemakaian</label>
+    <input type="date" id="tanggal">
+    <label>Alamat</label>
+    <textarea id="alamat" rows="3" placeholder="Masukkan alamat lengkap"></textarea>
+    <div class="btn-row">
+        <button class="btn btn-batal" onclick="batalkan()">✕ Batalkan</button>
+        <button class="btn btn-lanjut" onclick="lanjutkan()">Lanjutkan →</button>
+    </div>
+</div>
+<div class="watermark">@Smart Locker_Tugas Akhir Osa</div>
+<script>
+    const loker = localStorage.getItem('loker_dipilih');
+    if (!loker) {
+        alert('Pilih loker terlebih dahulu!');
+        window.location.href = 'pilih-loker.html';
+    }
+    document.getElementById('infoLoker').textContent = '📦 Loker yang dipilih: ' + loker;
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('tanggal').value = today;
+
+    function lanjutkan() {
+        const nama    = document.getElementById('nama').value.trim();
+        const no_hp   = document.getElementById('noHp').value.trim();
+        const tanggal = document.getElementById('tanggal').value;
+        const alamat  = document.getElementById('alamat').value.trim();
+
+        if (!nama || !no_hp || !tanggal || !alamat) {
+            alert('Semua kolom harus diisi!');
+            return;
+        }
+
+        // Simpan ke localStorage dulu, belum ke DB
+        localStorage.setItem('otp_no_hp', no_hp);
+        localStorage.setItem('nama_pengguna', nama);
+        localStorage.setItem('data_titip', JSON.stringify({
+            nama, no_hp, tanggal_pakai: tanggal,
+            alamat, nomor_loker: loker
+        }));
+
+        window.location.href = 'otp.html';
+    }
+
+    function batalkan() {
+        localStorage.removeItem('loker_dipilih');
+        window.location.href = 'https://smartlocker-ta.infinityfree.me/index.php';
+    }
+</script>
+</body>
+</html>

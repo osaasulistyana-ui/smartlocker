@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ambil Barang - Smart Locker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a2e;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h2 { color: #1a1a2e; margin-bottom: 6px; }
+        .sub { color: #888; font-size: 13px; margin-bottom: 24px; }
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            margin-bottom: 16px;
+        }
+        input:focus { outline: none; border-color: #1a1a2e; }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            background: #e74c3c;
+            color: white;
+            margin-bottom: 10px;
+        }
+        .btn:hover { background: #c0392b; }
+        .btn-kembali {
+            background: #f0f0f0;
+            color: #555;
+        }
+        .hasil {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 14px;
+            color: #155724;
+            font-size: 14px;
+            display: none;
+            margin-bottom: 16px;
+        }
+        .watermark {
+            color: #aaa;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>📤 Ambil Barang</h2>
+    <p class="sub">Masukkan nomor HP yang digunakan saat menitipkan barang</p>
+    <input type="tel" id="noHp" placeholder="Contoh: 08123456789">
+    <div class="hasil" id="hasilAmbil"></div>
+    <button class="btn" onclick="ambilBarang()">🔓 Ambil Barang</button>
+    <button class="btn btn-kembali" onclick="window.location.href='../index.html'">← Kembali</button>
+</div>
+<div class="watermark">@Smart Locker_Tugas Akhir Osa</div>
+<script>
+    const BASE = 'https://smartlocker-ta.infinityfree.me/pages';
+
+    async function ambilBarang() {
+        const no_hp = document.getElementById('noHp').value.trim();
+        if (!no_hp) { alert('Masukkan nomor HP!'); return; }
+
+        const res  = await fetch(`${BASE}/ambil-barang.php`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ no_hp })
+        });
+        const data = await res.json();
+
+        const hasilEl = document.getElementById('hasilAmbil');
+        hasilEl.style.display = 'block';
+
+        if (data.status === 'success') {
+            hasilEl.style.background  = '#d4edda';
+            hasilEl.style.borderColor = '#c3e6cb';
+            hasilEl.style.color       = '#155724';
+            hasilEl.innerHTML = `✅ Berhasil! Loker ${data.nomor_loker} sekarang kosong.`;
+            setTimeout(() => {
+                window.location.href = '../index.html';
+            }, 3000);
+        } else {
+            hasilEl.style.background  = '#f8d7da';
+            hasilEl.style.borderColor = '#f5c6cb';
+            hasilEl.style.color       = '#721c24';
+            hasilEl.innerHTML = '❌ ' + data.message;
+        }
+    }
+</script>
+</body>
+</html>
